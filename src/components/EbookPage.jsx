@@ -78,7 +78,7 @@ const EbookPage = () => {
       </section>
 
       {/* Secțiunea de documente */}
-    <DocumentsPublic /> 
+      <DocumentsPublic />
 
       <Footer />
     </div>

@@ -122,6 +122,20 @@ try {
  */
 function handleGetRequest($pdo) {
     // Verifică dacă se cere doar numărul
+    // Verifică dacă se cere descărcarea unui document
+if (isset($_GET['download']) && isset($_GET['id'])) {
+    $documentId = intval($_GET['id']);
+    
+    if ($documentId <= 0) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'ID document invalid']);
+        return;
+    }
+    
+    // Redirect către handler-ul de download
+    header("Location: download_document.php?id=" . $documentId);
+    exit;
+}
     if (isset($_GET['count'])) {
         $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM documents WHERE status = 'active'");
         $stmt->execute();

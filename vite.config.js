@@ -6,10 +6,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/admin': {
-        target: 'http://localhost/Consultant-Land-Page',
+      '/Breastfeeding-Help-Support': {
+        target: 'http://localhost',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        rewrite: (path) => {
+          console.log('Proxying request:', path)
+          return path
+        }
       }
     }
   }

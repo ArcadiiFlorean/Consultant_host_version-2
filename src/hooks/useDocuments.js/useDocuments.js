@@ -9,7 +9,9 @@ const useDocuments = (isAdmin = false) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const API_BASE = isAdmin ? '/documents_admin_api.php' : '/documents_public_api.php';
+const API_BASE = isAdmin 
+  ? '/Breastfeeding-Help-Support/admin/documents_admin_api.php' 
+  : '/Breastfeeding-Help-Support/api/documents_public_api.php';
 
   // Load documents
   const loadDocuments = useCallback(async () => {

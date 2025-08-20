@@ -8,7 +8,8 @@
 // VARIABLES & CONFIGURATION - LA ÎNCEPUT!
 // ============================================
 let documentsData = [];
-const DOCUMENTS_API = "/Consultant-Land-Page/admin/documents_admin_api.php";
+const DOCUMENTS_API =
+  "/Breastfeeding-Help-Support/admin/documents_admin_api.php";
 
 // ============================================
 // TOGGLE PREȚ - FUNCȚIONALITATEA EXISTENTĂ ÎMBUNĂTĂȚITĂ

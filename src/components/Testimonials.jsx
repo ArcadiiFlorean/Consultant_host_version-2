@@ -63,10 +63,10 @@ const Testimonials = () => {
       
       // Căile pentru server PHP (nu React dev server)
       const apiPaths = [
-        'http://localhost/Consultant-Land-Page/src/components/simple_testimonials.php',
-        'http://localhost/Consultant-Land-Page/simple_testimonials.php',
-        '/Consultant-Land-Page/src/components/simple_testimonials.php',
-        '/Consultant-Land-Page/simple_testimonials.php'
+        'http://localhost/Breastfeeding-Help-Support/src/components/simple_testimonials.php',
+        'http://localhost/Breastfeeding-Help-Support/simple_testimonials.php',
+        '/Breastfeeding-Help-Support/src/components/simple_testimonials.php',
+        '/Breastfeeding-Help-Support/simple_testimonials.php'
       ];
       
       let data = null;

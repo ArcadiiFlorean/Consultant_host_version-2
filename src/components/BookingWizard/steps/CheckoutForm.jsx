@@ -31,7 +31,7 @@ function CheckoutForm({ amount = 2000, formData }) {
       console.log("💾 Saving booking to database:", bookingData);
 
       const response = await fetch(
-        "http://localhost/Consultant-Land-Page/api/bookings.php",
+        "http://localhost/Breastfeeding-Help-Support/api/bookings.php",
         {
           method: "POST",
           headers: {
@@ -106,7 +106,7 @@ function CheckoutForm({ amount = 2000, formData }) {
 
       // Send the paymentMethodId to your backend
       const res = await fetch(
-        "http://localhost/Consultant-Land-Page/api/charge.php",
+        "http://localhost/Breastfeeding-Help-Support/api/charge.php",
         {
           method: "POST",
           headers: {

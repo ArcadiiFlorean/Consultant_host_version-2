@@ -98,7 +98,8 @@ function BookingWizard() {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://127.0.0.1/Consultant-Land-Page/api/services.php");
+    const response = await fetch("http://127.0.0.1/Breastfeeding-Help-Support/api/services.php");
+
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
