@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>http://localhost/</loc>
+        <lastmod>2025-08-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+        <xhtml:link rel="alternate" hreflang="ro" href="http://localhost/" />
+        <xhtml:link rel="alternate" hreflang="ru" href="http://localhost/" />
+    </url>
+    <url>
+        <loc>http://localhost/ebook</loc>
+        <lastmod>2025-08-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+        <xhtml:link rel="alternate" hreflang="ro" href="http://localhost/ebook" />
+        <xhtml:link rel="alternate" hreflang="ru" href="http://localhost/ebook" />
+    </url>
+    <url>
+        <loc>http://localhost/BookingWizard</loc>
+        <lastmod>2025-08-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+        <xhtml:link rel="alternate" hreflang="ro" href="http://localhost/BookingWizard" />
+        <xhtml:link rel="alternate" hreflang="ru" href="http://localhost/BookingWizard" />
+    </url>
+</urlset>

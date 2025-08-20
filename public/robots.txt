@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: http://localhost/sitemap.xml
+
+# Block admin areas if any
+Disallow: /admin/
+Disallow: /vendor/
+Disallow: /uploads/temp/
+
+# Allow important pages
+Allow: /
+Allow: /ebook
+Allow: /BookingWizard
