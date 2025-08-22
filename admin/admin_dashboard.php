@@ -788,12 +788,12 @@ document.getElementById('testimonialForm')?.addEventListener('submit', async fun
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                text: text,
-                author: name,
-                role: role,
-                rating: rating
-            })
+       body: JSON.stringify({
+    name: name,      // ✅ Schimbat din "author" în "name"
+    text: text,
+    role: role,
+    rating: rating
+})
         });
         
         const data = await response.json();

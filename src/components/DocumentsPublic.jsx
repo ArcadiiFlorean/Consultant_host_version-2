@@ -1,73 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const DocumentsPublic = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   // Mock data pentru fallback
   const mockDocuments = [
     {
       id: 1,
       title: "Ghidul Complet al Alăptării",
-      description: "Un ghid detaliat pentru mamele noi despre toate aspectele alăptării, de la primul început până la înțărcare.",
+      description:
+        "Un ghid detaliat pentru mamele noi despre toate aspectele alăptării, de la primul început până la înțărcare.",
       category: "ghiduri",
       file_type: "application/pdf",
       file_size: 2048576,
       downloads_count: 156,
       is_free: true,
       is_featured: true,
-      price: null
+      price: null,
     },
     {
       id: 2,
       title: "Checklist pentru Primele 6 Luni",
-      description: "O listă detaliată cu tot ce trebuie să știi și să faci în primele 6 luni de alăptare.",
+      description:
+        "O listă detaliată cu tot ce trebuie să știi și să faci în primele 6 luni de alăptare.",
       category: "checklist",
       file_type: "application/pdf",
       file_size: 512000,
       downloads_count: 89,
       is_free: true,
       is_featured: false,
-      price: null
+      price: null,
     },
     {
       id: 3,
       title: "Formular de Monitorizare Alăptare",
-      description: "Formular printabil pentru a urmări programul de alăptare și dezvoltarea copilului.",
+      description:
+        "Formular printabil pentru a urmări programul de alăptare și dezvoltarea copilului.",
       category: "formulare",
       file_type: "application/pdf",
       file_size: 256000,
       downloads_count: 234,
       is_free: true,
       is_featured: false,
-      price: null
-    }
+      price: null,
+    },
   ];
 
   // Categorii disponibile
   const categories = [
-    { value: 'all', label: 'Toate Documentele', icon: '📁' },
-    { value: 'ghiduri', label: 'Ghiduri', icon: '📖' },
-    { value: 'formulare', label: 'Formulare', icon: '📝' },
-    { value: 'resurse', label: 'Resurse', icon: '💎' },
-    { value: 'checklist', label: 'Checklist-uri', icon: '✅' },
-    { value: 'general', label: 'General', icon: '📋' }
+    { value: "all", label: "Toate Documentele", icon: "📁" },
+    { value: "ghiduri", label: "Ghiduri", icon: "📖" },
+    { value: "formulare", label: "Formulare", icon: "📝" },
+    { value: "resurse", label: "Resurse", icon: "💎" },
+    { value: "checklist", label: "Checklist-uri", icon: "✅" },
+    { value: "general", label: "General", icon: "📋" },
   ];
 
-  // Configurare API
+  // Configurare API pentru development local
   const API_CONFIG = {
-    // Pentru development cu server PHP local
-    development: 'http://localhost/Breastfeeding-Help-Support/admin/documents_public_api.php',
-    // Pentru production
-    production: '/Breastfeeding-Help-Support/admin/documents_public_api.php',
-    // Sau folosește direct URL-ul serverului tău
-    direct: 'https://your-domain.com/Breastfeeding-Help-Support/admin/documents_public_api.php'
+    // Pentru development cu calea completă
+    development: "/Breastfeeding-Help-Support/admin/documents_public_api.php",
+    production: "/Breastfeeding-Help-Support/admin/documents_public_api.php",
   };
 
-  const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
-  
+  const isDevelopment =
+    process.env.NODE_ENV === "development" ||
+    window.location.hostname === "localhost";
+
   // Încarcă documentele
   useEffect(() => {
     loadDocuments();
@@ -79,54 +81,56 @@ const DocumentsPublic = () => {
       setError(null);
 
       // Încearcă să încarce de la API
-      let apiUrl = isDevelopment ? API_CONFIG.development : API_CONFIG.production;
-      
+      let apiUrl = isDevelopment
+        ? API_CONFIG.development
+        : API_CONFIG.production;
+
       // Dacă vrei să testezi cu URL direct, decomentează:
       // apiUrl = API_CONFIG.direct;
 
       console.log(`🔧 Încarcă documente de la: ${apiUrl}`);
 
       const response = await fetch(apiUrl, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
         // Pentru development cu CORS
-        mode: 'cors',
+        mode: "cors",
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
-        console.error('Response is not JSON:', text.substring(0, 200));
-        throw new Error('Server returned HTML instead of JSON');
+        console.error("Response is not JSON:", text.substring(0, 200));
+        throw new Error("Server returned HTML instead of JSON");
       }
 
       const result = await response.json();
-      console.log('📊 API Response:', result);
-      
+      console.log("📊 API Response:", result);
+
       if (result.success) {
         const documentsData = Array.isArray(result.data) ? result.data : [];
         setDocuments(documentsData);
         console.log(`✅ Încărcate ${documentsData.length} documente din API`);
       } else {
-        throw new Error(result.error || 'Eroare la încărcarea documentelor');
+        throw new Error(result.error || "Eroare la încărcarea documentelor");
       }
     } catch (err) {
-      console.error('❌ Error loading documents:', err);
-      
+      console.error("❌ Error loading documents:", err);
+
       // Fallback la mock data în caz de eroare
-      console.log('🔄 Fallback la mock data...');
+      console.log("🔄 Fallback la mock data...");
       setDocuments(mockDocuments);
-      
+
       let errorMessage = `API Error: ${err.message}. Folosind date demo.`;
       setError(errorMessage);
-      
+
       // Auto-clear error după 5 secunde
       setTimeout(() => setError(null), 5000);
     } finally {
@@ -135,63 +139,104 @@ const DocumentsPublic = () => {
   };
 
   // Funcția de download
-  const handleDownload = (documentId, documentTitle) => {
+  const handleDownload = async (documentId, documentTitle) => {
     console.log(`📥 Descărcare document: ${documentTitle} (ID: ${documentId})`);
-    
+
     if (!documentId || !documentTitle) {
-      showNotification('❌ Eroare: Document invalid!', 'error');
+      showNotification("❌ Eroare: Document invalid!", "error");
       return;
     }
 
-    // URL pentru download
-    let downloadUrl;
-    if (isDevelopment) {
-      downloadUrl = `http://localhost/Breastfeeding-Help-Support/admin/download_document.php?id=${encodeURIComponent(documentId)}`;
-    } else {
-      downloadUrl = `/Breastfeeding-Help-Support/admin/download_document.php?id=${encodeURIComponent(documentId)}`;
-    }
-    
+    const downloadUrl = `/Breastfeeding-Help-Support/admin/download_document.php?id=${encodeURIComponent(
+      documentId
+    )}`;
+
     try {
-      const downloadWindow = window.open(downloadUrl, '_blank', 'noopener,noreferrer');
-      
-      if (!downloadWindow) {
-        window.location.href = downloadUrl;
+      showNotification(`⏳ Pregătire descărcare "${documentTitle}"...`, "info");
+
+      // Fă o cerere pentru a verifica dacă fișierul poate fi descărcat
+      const response = await fetch(downloadUrl);
+
+      console.log("Download response status:", response.status);
+      console.log(
+        "Download response headers:",
+        response.headers.get("content-type")
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Server error: ${response.status} ${response.statusText}`
+        );
       }
-      
-      showNotification(`📥 Descărcarea documentului "${documentTitle}" a început!`, 'success');
+
+      // Verifică dacă răspunsul este JSON (eroare) sau un fișier
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        // Este o eroare JSON
+        const errorData = await response.json();
+        console.error("Download error data:", errorData);
+
+        if (!errorData.success) {
+          throw new Error(
+            errorData.error || "Eroare necunoscută la descărcare"
+          );
+        }
+      } else {
+        // Este un fișier valid, deschide pentru descărcare
+        const downloadWindow = window.open(
+          downloadUrl,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+        if (!downloadWindow) {
+          window.location.href = downloadUrl;
+        }
+
+        showNotification(
+          `📥 Descărcarea documentului "${documentTitle}" a început!`,
+          "success"
+        );
+        return;
+      }
     } catch (err) {
-      console.error('Download error:', err);
-      showNotification('❌ Eroare la descărcare. Încearcă din nou.', 'error');
+      console.error("Download error:", err);
+      showNotification(`❌ ${err.message}`, "error");
     }
   };
 
   // Filtrează documentele după categorie
-  const filteredDocuments = selectedCategory === 'all' 
-    ? documents 
-    : documents.filter(doc => doc.category === selectedCategory);
+  const filteredDocuments =
+    selectedCategory === "all"
+      ? documents
+      : documents.filter((doc) => doc.category === selectedCategory);
 
   // Funcție pentru notificări
-  const showNotification = (message, type = 'info') => {
-    const existingNotification = document.querySelector('.custom-notification');
+  const showNotification = (message, type = "info") => {
+    const existingNotification = document.querySelector(".custom-notification");
     if (existingNotification) {
       existingNotification.remove();
     }
 
-    const notification = document.createElement('div');
+    const notification = document.createElement("div");
     notification.className = `custom-notification fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
-      type === 'success' ? 'bg-green-500' : 
-      type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+      type === "success"
+        ? "bg-green-500"
+        : type === "error"
+        ? "bg-red-500"
+        : "bg-blue-500"
     } text-white transform translate-x-full transition-transform duration-300`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
-      notification.style.transform = 'translateX(0)';
+      notification.style.transform = "translateX(0)";
     }, 100);
-    
+
     setTimeout(() => {
-      notification.style.transform = 'translateX(full)';
+      notification.style.transform = "translateX(full)";
       setTimeout(() => {
         if (notification.parentNode) {
           notification.remove();
@@ -202,23 +247,23 @@ const DocumentsPublic = () => {
 
   // Obține icon-ul pentru tipul de fișier
   const getFileIcon = (fileType) => {
-    if (!fileType) return '📋';
+    if (!fileType) return "📋";
     const type = fileType.toLowerCase();
-    if (type.includes('pdf')) return '📄';
-    if (type.includes('word') || type.includes('document')) return '📝';
-    if (type.includes('excel') || type.includes('sheet')) return '📊';
-    if (type.includes('image')) return '🖼️';
-    if (type.includes('text')) return '📃';
-    return '📋';
+    if (type.includes("pdf")) return "📄";
+    if (type.includes("word") || type.includes("document")) return "📝";
+    if (type.includes("excel") || type.includes("sheet")) return "📊";
+    if (type.includes("image")) return "🖼️";
+    if (type.includes("text")) return "📃";
+    return "📋";
   };
 
   // Formatează dimensiunea fișierului
   const formatFileSize = (bytes) => {
-    if (!bytes || bytes === 0) return '0 B';
+    if (!bytes || bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   if (loading) {
@@ -238,8 +283,9 @@ const DocumentsPublic = () => {
         {/* Status indicator */}
         <div className="mb-8 p-4 bg-blue-100 border border-blue-300 rounded-lg text-center">
           <p className="text-blue-800">
-            🔧 <strong>Mode:</strong> {isDevelopment ? 'Development' : 'Production'} | 
-            📊 <strong>Documente:</strong> {documents.length} | 
+            🔧 <strong>Mode:</strong>{" "}
+            {isDevelopment ? "Development" : "Production"} | 📊{" "}
+            <strong>Documente:</strong> {documents.length} |
             {error && <span className="text-red-600">⚠️ {error}</span>}
             {!error && <span className="text-green-600">✅ API conectat</span>}
           </p>
@@ -263,8 +309,8 @@ const DocumentsPublic = () => {
               onClick={() => setSelectedCategory(category.value)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 selectedCategory === category.value
-                  ? 'bg-[#b06b4c] text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                  ? "bg-[#b06b4c] text-white shadow-lg"
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
               }`}
             >
               {category.icon} {category.label}
@@ -282,7 +328,7 @@ const DocumentsPublic = () => {
             <p className="text-gray-500">
               Verifică alte categorii sau revino mai târziu pentru noi resurse
             </p>
-            <button 
+            <button
               onClick={loadDocuments}
               className="mt-4 bg-[#b06b4c] text-white px-6 py-2 rounded-lg hover:bg-amber-600 transition-colors duration-200"
             >
@@ -308,11 +354,11 @@ const DocumentsPublic = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
                     {document.title}
                   </h3>
-                  
+
                   {document.description && (
                     <p className="text-sm text-gray-600 line-clamp-3">
                       {document.description}
@@ -373,7 +419,8 @@ const DocumentsPublic = () => {
             </div>
             <div>
               <span className="text-2xl block mb-2">📚</span>
-              <strong>Studiază</strong> ghidurile pas cu pas pentru rezultate optime
+              <strong>Studiază</strong> ghidurile pas cu pas pentru rezultate
+              optime
             </div>
           </div>
         </div>
