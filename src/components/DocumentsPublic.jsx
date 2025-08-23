@@ -61,9 +61,9 @@ const DocumentsPublic = () => {
 
   // Configurare API pentru development local
   const API_CONFIG = {
-    // Pentru development cu calea completă
-    development: "/Breastfeeding-Help-Support/admin/documents_public_api.php",
-    production: "/Breastfeeding-Help-Support/admin/documents_public_api.php",
+    // Pentru production pe marina-cociug.com
+    development: "/admin/documents_public_api.php",
+    production: "/admin/documents_public_api.php",
   };
 
   const isDevelopment =
@@ -147,7 +147,7 @@ const DocumentsPublic = () => {
       return;
     }
 
-    const downloadUrl = `/Breastfeeding-Help-Support/admin/download_document.php?id=${encodeURIComponent(
+    const downloadUrl = `/admin/download_document.php?id=${encodeURIComponent(
       documentId
     )}`;
 

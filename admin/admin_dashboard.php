@@ -532,7 +532,7 @@ body {
 
     <div class="dashboard-container">
         <div class="header">
-            <h1>🌸 Pufet</h1>
+            <h1>🌸 Admin</h1>
             <p>Cu drag, pentru Pufica – sprijinul mamelor, inspirația mea</p>
         </div>
 
