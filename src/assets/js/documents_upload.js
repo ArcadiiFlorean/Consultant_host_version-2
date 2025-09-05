@@ -81,7 +81,7 @@ function initDocumentsManager() {
 /**
  * Deschide modalul pentru documente (apelată din dashboard.js)
  */
-window.openDocumentsModal = function () {
+function openDocumentsModal() {
   console.log("🚀 Deschidere modal documente...");
 
   const modal = document.getElementById("documentsModal");
@@ -757,6 +757,23 @@ function setupEventListeners() {
     }, 100);
   });
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  const docButton = document.querySelector(".card-documents");
+  if (docButton) {
+    docButton.addEventListener("click", function () {
+      const modal = new bootstrap.Modal(
+        document.getElementById("documentsModal")
+      );
+      modal.show();
+
+      const event = new CustomEvent("documentsModalOpened");
+      document.dispatchEvent(event);
+
+      console.log("📁 Modal documente deschis");
+    });
+  }
+});
 
 // ============================================
 // HELPER FUNCTIONS

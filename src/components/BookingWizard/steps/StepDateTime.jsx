@@ -11,36 +11,89 @@ function StepDateTime({ formData, setFormData, nextStep }) {
   const fetchAvailableSlots = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "http://localhost/Breastfeeding-Help-Support/admin/get_available_slots.php"
-      );
+      setError(null);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      // Lista de URL-uri posibile pentru API-ul de sloturi (similară cu cea pentru servicii)
+      const possibleUrls = [
+        "https://marina-cociug.com/admin/get_available_slots.php",
+        "/admin/get_available_slots.php",
+        "./admin/get_available_slots.php",
+        "admin/get_available_slots.php",
+      ];
+      let lastError = null;
+      let success = false;
+
+      // Încearcă fiecare URL până găsește unul care funcționează
+      for (const url of possibleUrls) {
+        try {
+          console.log(
+            `🔍 StepDateTime: Attempting to fetch slots from: ${url}`
+          );
+
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            signal: AbortSignal.timeout(8000), // 8 secunde timeout
+          });
+
+          console.log(
+            `📡 StepDateTime: Response status: ${response.status} for ${url}`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          console.log("✅ StepDateTime: Slots response from", url, ":", data);
+
+          if (data.success && data.slots && Array.isArray(data.slots)) {
+            const grouped = {};
+            data.slots.forEach((slot) => {
+              const [date, time] = slot.datetime_combined.split("T");
+              if (!grouped[date]) grouped[date] = [];
+              grouped[date].push(time.slice(0, 5)); // HH:MM
+            });
+
+            setAvailableSlotsByDate(grouped);
+
+            const uniqueDates = Object.keys(grouped).map((d) => new Date(d));
+            setAvailableDates(uniqueDates);
+            success = true;
+            console.log(
+              `🎉 StepDateTime: Successfully loaded slots from: ${url}`
+            );
+            break;
+          } else {
+            throw new Error(
+              data.error || data.message || "Invalid response format"
+            );
+          }
+        } catch (fetchError) {
+          console.warn(
+            `❌ StepDateTime: Failed to fetch from ${url}:`,
+            fetchError.message
+          );
+          lastError = fetchError;
+          continue;
+        }
       }
 
-      const data = await response.json();
-
-      if (data.success) {
-        const grouped = {};
-        data.slots.forEach((slot) => {
-          const [date, time] = slot.datetime_combined.split("T");
-          if (!grouped[date]) grouped[date] = [];
-          grouped[date].push(time.slice(0, 5)); // HH:MM
-        });
-
-        setAvailableSlotsByDate(grouped);
-
-        const uniqueDates = Object.keys(grouped).map((d) => new Date(d));
-        setAvailableDates(uniqueDates);
-        setError(null);
-      } else {
-        throw new Error(data.error || "Eroare necunoscută");
+      if (!success) {
+        throw new Error(
+          `Nu s-au putut încărca sloturile disponibile. Verifică că API-ul funcționează. Ultima eroare: ${
+            lastError?.message || "Unknown error"
+          }`
+        );
       }
     } catch (err) {
-      console.error("Eroare la încărcarea sloturilor:", err);
+      console.error("🚨 StepDateTime: Error fetching slots:", err);
       setError(
-        "Nu s-au putut încărca sloturile disponibile. Încercați din nou."
+        err.message ||
+          "Nu s-au putut încărca sloturile disponibile. Încercați din nou."
       );
     } finally {
       setLoading(false);
@@ -57,7 +110,7 @@ function StepDateTime({ formData, setFormData, nextStep }) {
     setFormData((prev) => ({
       ...prev,
       date: slot_date,
-      hour: "",
+      hour: "", // Resetează ora când se schimbă data
     }));
   };
 
@@ -75,23 +128,50 @@ function StepDateTime({ formData, setFormData, nextStep }) {
       const timeWithSeconds = formData.hour.includes(":00")
         ? formData.hour
         : formData.hour + ":00";
-      const response = await fetch(
-        `http://localhost/Breastfeeding-Help-Support/admin/check_slot_availability.php?date=${formData.date}&time=${timeWithSeconds}`
-      );
-      const data = await response.json();
 
-      if (!data.available) {
-        setError(
-          "⚠️ Slotul selectat nu mai este disponibil. Vă rugăm să alegeți altul."
-        );
-        fetchAvailableSlots();
-        return false;
+      // Folosește aceleași URL-uri posibile pentru verificarea disponibilității
+      // Pentru verifySlotAvailability:
+      const possibleUrls = [
+        `https://marina-cociug.com/admin/check_slot_availability.php?date=${formData.date}&time=${timeWithSeconds}`,
+        `/admin/check_slot_availability.php?date=${formData.date}&time=${timeWithSeconds}`,
+        // ...restul URL-urilor
+      ];
+
+      for (const url of possibleUrls) {
+        try {
+          console.log(`🔍 StepDateTime: Checking availability at: ${url}`);
+          const response = await fetch(url);
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("✅ StepDateTime: Availability check response:", data);
+
+            if (!data.available) {
+              setError(
+                "⚠️ Slotul selectat nu mai este disponibil. Vă rugăm să alegeți altul."
+              );
+              fetchAvailableSlots(); // Reîncarcă sloturile
+              return false;
+            }
+            return true;
+          }
+        } catch (err) {
+          console.warn(
+            `❌ StepDateTime: Availability check failed for ${url}:`,
+            err.message
+          );
+          continue;
+        }
       }
 
+      // Dacă toate URL-urile eșuează, asumă că slotul este disponibil
+      console.warn(
+        "⚠️ StepDateTime: Could not verify slot availability, assuming available"
+      );
       return true;
     } catch (err) {
-      console.warn("Nu s-a putut verifica disponibilitatea:", err);
-      return true;
+      console.warn("⚠️ StepDateTime: Error verifying slot availability:", err);
+      return true; // În caz de eroare, permite continuarea
     }
   };
 
@@ -181,7 +261,7 @@ function StepDateTime({ formData, setFormData, nextStep }) {
                 <h4 className="font-semibold text-red-800 mb-2">
                   A apărut o problemă
                 </h4>
-                <p className="text-red-700 mb-4">{error}</p>
+                <p className="text-red-700 mb-4 break-words">{error}</p>
                 <button
                   onClick={fetchAvailableSlots}
                   className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -251,7 +331,7 @@ function StepDateTime({ formData, setFormData, nextStep }) {
             </h3>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
               Ne pare rău, dar toate sloturile sunt ocupate. Te rugăm să revii
-              mai târziu.
+              mai târziu sau să contactezi direct consultantul.
             </p>
             <button
               onClick={fetchAvailableSlots}
@@ -424,18 +504,18 @@ function StepDateTime({ formData, setFormData, nextStep }) {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl sm:text-2xl font-bold text-green-800 mb-2">
-                      🎉 Data și ora au fost selectate
+                      Data și ora au fost selectate
                     </h3>
                     <div className="text-green-700">
                       <p className="text-lg font-semibold mb-1">
-                        📅 {formatDateDisplay(formData.date)}
+                        Data: {formatDateDisplay(formData.date)}
                       </p>
                       <p className="text-lg font-semibold">
-                        🕐 Ora {formData.hour}
+                        Ora: {formData.hour}
                       </p>
                     </div>
                     <p className="text-sm text-green-600 mt-3 bg-white/50 rounded-lg px-3 py-2">
-                      ✨ Confirmarea finală se va face după completarea
+                      Confirmarea finală se va face după completarea
                       formularului și plata serviciului.
                     </p>
                   </div>

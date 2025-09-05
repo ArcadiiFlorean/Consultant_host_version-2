@@ -83,16 +83,7 @@ window.openTestimonialsModal = function () {
   console.log("📝 Modal testimonials deschis");
 };
 
-window.openDocumentsModal = function () {
-  const modal = new bootstrap.Modal(document.getElementById("documentsModal"));
-  modal.show();
 
-  // Trigger eveniment pentru încărcarea datelor
-  const event = new CustomEvent("documentsModalOpened");
-  document.dispatchEvent(event);
-
-  console.log("📁 Modal documente deschis");
-};
 
 // Gestionează erorile globale
 window.addEventListener("error", function (e) {
@@ -121,3 +112,47 @@ window.addEventListener("unhandledrejection", function (e) {
 });
 
 console.log("✅ dashboard.js încărcat cu succes!");
+window.openDocumentsModal = function () {
+    const modalEl = document.getElementById("documentsModal");
+    if (!modalEl) {
+        console.error("📂 Modalul documentelor nu există în HTML!");
+        return;
+    }
+
+    // Deschide modalul
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Selector pentru lista de documente
+    const listEl = modalEl.querySelector(".documents-list");
+    listEl.innerHTML = "Se încarcă documentele...";
+
+    // Fetch documente de la API
+    fetch("public_documents.php")
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                listEl.innerHTML = `<div class="text-danger">Eroare la încărcarea documentelor: ${data.error || "Unknown"}</div>`;
+                return;
+            }
+
+            if (data.count === 0) {
+                listEl.innerHTML = "<div>Nu există documente disponibile.</div>";
+                return;
+            }
+
+            // Construim lista de documente
+            listEl.innerHTML = data.data.map(doc => `
+                <div class="document-item p-2 border-bottom d-flex justify-content-between align-items-center">
+                    <span>${doc.file_icon} ${doc.title}</span>
+                    <span>${doc.formatted_size}</span>
+                </div>
+            `).join("");
+        })
+        .catch(err => {
+            console.error("📂 Fetch error:", err);
+            listEl.innerHTML = `<div class="text-danger">Eroare la încărcarea documentelor.</div>`;
+        });
+
+    console.log("📂 Modal documente deschis");
+};

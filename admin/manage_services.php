@@ -1,16 +1,30 @@
 <?php 
-session_start(); 
-if (!isset($_SESSION['admin_logged_in'])) {     
-    header("Location: admin_login.php");     
-    exit; 
-} 
+
 include 'db.php';  
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {     
+// RULEAZĂ DOAR O DATĂ - apoi șterge aceste linii
+/*
+$pdo->exec("ALTER TABLE services DROP PRIMARY KEY");
+$pdo->exec("ALTER TABLE services MODIFY id INT AUTO_INCREMENT PRIMARY KEY");
+$pdo->exec("SET @count = 0");
+$pdo->exec("UPDATE services SET id = (@count := @count + 1)");
+$pdo->exec("ALTER TABLE services AUTO_INCREMENT = 1");
+*/
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_POST['action']) && $_POST['action'] === 'update') {
         // Actualizare serviciu existent
-        $stmt = $pdo->prepare("UPDATE services SET name=?, price=?, currency=?, description=?, popular=?, icon=?, features=? WHERE id=?");     
-        $features = isset($_POST['features']) ? implode('|', array_filter($_POST['features'])) : '';
+        $service_id = $_POST['id'];
+        $features = '';
+        
+        // Procesează caracteristicile pentru serviciul specific
+        if (isset($_POST['features'][$service_id]) && is_array($_POST['features'][$service_id])) {
+            $features = implode('|', array_filter($_POST['features'][$service_id], function($f) {
+                return trim($f) !== '';
+            }));
+        }
+        
+        $stmt = $pdo->prepare("UPDATE services SET name=?, price=?, currency=?, description=?, popular=?, icon=?, features=? WHERE id=?");
         $popular = isset($_POST['popular']) ? 1 : 0;
         $stmt->execute([
             $_POST['name'], 
@@ -20,13 +34,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $popular,
             $_POST['icon'],
             $features,
-            $_POST['id']
+            $service_id
         ]);
         $message = "Serviciul a fost actualizat cu succes!";
+        
     } elseif (isset($_POST['action']) && $_POST['action'] === 'add') {
         // Adăugare serviciu nou
+        $features = '';
+        
+        // Procesează caracteristicile pentru serviciul nou
+        if (isset($_POST['features']) && is_array($_POST['features'])) {
+            $features = implode('|', array_filter($_POST['features'], function($f) {
+                return trim($f) !== '';
+            }));
+        }
+        
         $stmt = $pdo->prepare("INSERT INTO services (name, price, currency, description, popular, icon, features) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $features = isset($_POST['features']) ? implode('|', array_filter($_POST['features'])) : '';
         $popular = isset($_POST['popular']) ? 1 : 0;
         $stmt->execute([
             $_POST['name'], 
@@ -38,13 +61,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $features
         ]);
         $message = "Serviciul a fost adăugat cu succes!";
+        
     } elseif (isset($_POST['action']) && $_POST['action'] === 'delete') {
         // Ștergere serviciu
-        $stmt = $pdo->prepare("DELETE FROM services WHERE id=?");
+        $stmt = $pdo->prepare("DELETE FROM services WHERE id = ?");
         $stmt->execute([$_POST['id']]);
         $message = "Serviciul a fost șters cu succes!";
     }
-}  
+}
 
 $services = $pdo->query("SELECT * FROM services ORDER BY popular DESC, id ASC")->fetchAll(); 
 ?>
@@ -639,14 +663,14 @@ $services = $pdo->query("SELECT * FROM services ORDER BY popular DESC, id ASC")-
                         ✏️ Servicii Existente
                     </h2>
                     
-                    <?php foreach ($services as $index => $s): 
+                   <?php foreach ($services as $index => $s): 
                         $features = $s['features'] ? explode('|', $s['features']) : [];
                         $formClass = $s['popular'] ? 'service-form edit-form popular-form' : 'service-form edit-form';
                     ?> 
                     <form method="POST" class="<?= $formClass ?>">
                         <input type="hidden" name="action" value="update">
-                        <input type="hidden" name="id" value="<?= $s['id'] ?>">
-                        
+                        <input type="hidden" name="id" value="<?= htmlspecialchars($s['id']) ?>">
+                                        
                         <?php if ($s['popular']): ?>
                             <div style="text-align: center; margin-bottom: 20px;">
                                 <span style="background: #f39c12; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; font-weight: 600;">
@@ -711,20 +735,16 @@ $services = $pdo->query("SELECT * FROM services ORDER BY popular DESC, id ASC")-
                             </label>
                             <div class="features-container">
                                 <div class="features-list-<?= $s['id'] ?>">
-                                    <?php foreach ($features as $feature): ?>
-                                        <?php if (trim($feature)): ?>
-                                            <div class="feature-input">
-                                                <input type="text" name="features[]" value="<?= htmlspecialchars(trim($feature)) ?>" class="form-control">
-                                                <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">×</button>
-                                            </div>
-                                        <?php endif; ?>
+                                    <?php
+                                    $features = $s['features'] ? explode('|', $s['features']) : [];
+                                    if (empty($features)) $features = [''];
+                                    foreach ($features as $feature):
+                                    ?>
+                                    <div class="feature-input">
+                                        <input type="text" name="features[<?= $s['id'] ?>][]" value="<?= htmlspecialchars(trim($feature)) ?>" class="form-control">
+                                        <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">×</button>
+                                    </div>
                                     <?php endforeach; ?>
-                                    <?php if (empty($features) || count(array_filter($features)) === 0): ?>
-                                        <div class="feature-input">
-                                            <input type="text" name="features[]" placeholder="ex: Evaluare completă" class="form-control">
-                                            <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">×</button>
-                                        </div>
-                                    <?php endif; ?>
                                 </div>
                                 <button type="button" class="add-feature-btn" onclick="addFeatureToService(<?= $s['id'] ?>)">
                                     + Adaugă caracteristică
@@ -801,7 +821,7 @@ $services = $pdo->query("SELECT * FROM services ORDER BY popular DESC, id ASC")-
             const newFeature = document.createElement('div');
             newFeature.className = 'feature-input';
             newFeature.innerHTML = `
-                <input type="text" name="features[]" placeholder="ex: Suport 24/7" class="form-control">
+                <input type="text" name="features[` + serviceId + `][]" placeholder="ex: Suport 24/7" class="form-control">
                 <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">×</button>
             `;
             featuresList.appendChild(newFeature);
@@ -871,14 +891,6 @@ $services = $pdo->query("SELECT * FROM services ORDER BY popular DESC, id ASC")-
                     });
                 });
             }
-            
-            // Preview în timp real pentru formularul de adăugare
-            const previewElements = {
-                name: document.getElementById('new_name'),
-                price: document.getElementById('new_price'),
-                currency: document.getElementById('new_currency'),
-                description: document.getElementById('new_description')
-            };
             
             // Validare formulare
             document.querySelectorAll('form').forEach(form => {

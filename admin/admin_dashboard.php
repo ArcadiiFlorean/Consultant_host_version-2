@@ -592,6 +592,272 @@ body {
                     ⭐ Gestionează recenzii
                 </div>
             </button>
+
+
+<!-- Modalul pentru documente - adaugă după modalul pentru testimonials -->
+<div class="modal fade" id="documentsModal" tabindex="-1" aria-labelledby="documentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentsModalLabel">
+                    <i class="fas fa-file-alt me-3"></i>Gestionare Documente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="documentsTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="add-document-tab" data-bs-toggle="tab" data-bs-target="#add-document" type="button" role="tab">
+                            <i class="fas fa-plus-circle me-2"></i>Încarcă Document Nou
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documents-list-tab" data-bs-toggle="tab" data-bs-target="#list-documents" type="button" role="tab">
+                            <i class="fas fa-list me-2"></i>Toate Documentele
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="documentsTabContent">
+                    <!-- Tab pentru încărcare document nou -->
+                    <div class="tab-pane fade show active" id="add-document" role="tabpanel">
+                        <div class="document-form p-4">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h4 class="text-primary">Încarcă un document nou</h4>
+                                <p class="text-muted">Documentele vor fi disponibile pentru descărcare de către clienți</p>
+                            </div>
+
+                            <form id="document-upload-form" enctype="multipart/form-data">
+                                <!-- Upload Area -->
+                                <div id="upload-area" class="border-dashed border-2 border-primary rounded-3 p-4 text-center mb-4" style="cursor: pointer; transition: all 0.3s ease;">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                    <h5>Alege sau trage fișierul aici</h5>
+                                    <p class="text-muted">Tipuri acceptate: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, imagini<br>Dimensiune maximă: 10MB</p>
+                                    <input type="file" id="document-file" class="d-none" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.webp" required>
+                                </div>
+
+                                <!-- File Info -->
+                                <div id="file-info" style="display: none;" class="alert alert-info mb-4">
+                                    <i class="fas fa-file me-2"></i>
+                                    <strong>Fișier selectat:</strong> <span id="selected-file-name"></span> 
+                                    (<span id="selected-file-size"></span>)
+                                </div>
+
+                                <!-- Form Fields -->
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="document-title" placeholder="Titlul documentului" required>
+                                    <label for="document-title">
+                                        <i class="fas fa-heading me-2"></i>Titlul Documentului *
+                                    </label>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    <textarea class="form-control" id="document-description" placeholder="Descrierea documentului" style="height: 100px;"></textarea>
+                                    <label for="document-description">
+                                        <i class="fas fa-align-left me-2"></i>Descrierea (opțională)
+                                    </label>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating mb-3">
+                                            <select class="form-select" id="document-category">
+                                                <option value="general">General</option>
+                                                <option value="guides">Ghiduri</option>
+                                                <option value="forms">Formulare</option>
+                                                <option value="resources">Resurse</option>
+                                            </select>
+                                            <label for="document-category">
+                                                <i class="fas fa-tags me-2"></i>Categoria
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating mb-3">
+                                            <select class="form-select" id="document-type">
+                                                <option value="free">Gratuit</option>
+                                                <option value="paid">Cu plată</option>
+                                            </select>
+                                            <label for="document-type">
+                                                <i class="fas fa-money-bill me-2"></i>Tipul Documentului
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Price Container (hidden by default) -->
+                                <div id="price-container" style="display: none;" class="mb-3">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="document-price" placeholder="0.00" step="0.01" min="0">
+                                        <label for="document-price">
+                                            <i class="fas fa-euro-sign me-2"></i>Preț (RON)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Options -->
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="document-featured">
+                                    <label class="form-check-label" for="document-featured">
+                                        <i class="fas fa-star me-2"></i>Document recomandat (va apărea în evidență)
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn-save-document btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-upload me-2"></i>Publică Documentul
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Tab pentru lista de documente -->
+                    <div class="tab-pane fade" id="list-documents" role="tabpanel">
+                        <div id="documents-loading" class="text-center p-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-3 text-muted">Se încarcă documentele...</p>
+                        </div>
+                        
+                        <div id="documents-list"></div>
+                        
+                        <div id="documents-empty" class="text-center p-4" style="display: none;">
+                            <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted mb-3">Nu există documente încă</h5>
+                            <p class="text-muted">Încarcă primul document pentru a-l vedea aici</p>
+                            <button class="btn btn-outline-primary" onclick="document.getElementById('add-document-tab').click()">
+                                <i class="fas fa-plus me-2"></i>Încarcă Primul Document
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Stiluri suplimentare pentru modalul de documente */
+.document-form .form-floating .form-control:focus,
+.document-form .form-floating .form-select:focus {
+    border-color: #a8e6cf;
+    box-shadow: 0 0 0 0.2rem rgba(168, 230, 207, 0.15);
+}
+
+#upload-area.dragover {
+    background-color: rgba(168, 230, 207, 0.1);
+    border-color: #7fcdcd !important;
+}
+
+.btn-save-document {
+    background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
+    border: none;
+    color: white;
+    font-weight: 700;
+    padding: 18px 40px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s ease;
+    box-shadow: 0 10px 25px rgba(168, 230, 207, 0.3);
+}
+
+.btn-save-document:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(168, 230, 207, 0.4);
+}
+
+.document-item {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.document-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+
+.btn-delete-document {
+    background: linear-gradient(135deg, #fc8181, #f56565);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-delete-document:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(252, 129, 129, 0.4);
+}
+
+.document-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+}
+
+/* Stat item pentru documente */
+.stat-documents {
+    text-align: center;
+    color: white;
+}
+
+.stat-documents h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.stat-documents p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
+
+<script>
+// Funcție temporară pentru a defini openDocumentsModal direct
+function openDocumentsModal() {
+    console.log('🚀 Deschidere modal documente - funcție temporară...');
+    
+    const modal = document.getElementById('documentsModal');
+    if (!modal) {
+        alert('❌ Modalul pentru documente nu a fost găsit!');
+        console.error('Element documentsModal nu există în DOM');
+        return;
+    }
+    
+    // Verifică dacă Bootstrap este disponibil
+    if (typeof bootstrap === 'undefined') {
+        alert('❌ Bootstrap nu este încărcat!');
+        console.error('Bootstrap nu este disponibil');
+        return;
+    }
+    
+    try {
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+        
+        console.log('✅ Modal deschis cu succes (funcție temporară)');
+    } catch (error) {
+        alert('Eroare la deschiderea modalului: ' + error.message);
+        console.error('❌ Eroare modal:', error);
+    }
+}
+</script>
+
  <?php echo renderDocumentsCard(); ?>
             <a href="logout.php" class="dashboard-card card-logout">
                 <div class="card-icon">🚪</div>
@@ -1008,5 +1274,20 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php integrateDocumentsManager(); ?>
 <script src="../src/assets/js/dashboard.js"></script>
 <script src="../src/assets/js/documents_upload.js"></script>
+<!-- Modal Documente -->
+<div class="modal fade" id="documentsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Documente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="documents-list">Se încarcă documentele...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

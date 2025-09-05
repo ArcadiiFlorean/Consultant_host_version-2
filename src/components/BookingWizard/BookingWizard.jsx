@@ -29,10 +29,10 @@ function BookingWizard() {
   const getURLParams = () => {
     const urlParams = new URLSearchParams(window.location.search);
     return {
-      serviceId: urlParams.get('service'),
-      serviceName: urlParams.get('name'),
-      servicePrice: urlParams.get('price'),
-      serviceCurrency: urlParams.get('currency')
+      serviceId: urlParams.get("service"),
+      serviceName: urlParams.get("name"),
+      servicePrice: urlParams.get("price"),
+      serviceCurrency: urlParams.get("currency"),
     };
   };
 
@@ -45,48 +45,49 @@ function BookingWizard() {
   useEffect(() => {
     if (services.length > 0) {
       const urlParams = getURLParams();
-      
+
       // Dacă avem parametri în URL, preselectăm serviciul
       if (urlParams.serviceId && urlParams.serviceName) {
         // Verifică dacă este consultația gratuită
-        if (urlParams.serviceId === 'free') {
-          setFormData(prev => ({
+        if (urlParams.serviceId === "free") {
+          setFormData((prev) => ({
             ...prev,
-            serviceId: 'free',
+            serviceId: "free",
             serviceName: decodeURIComponent(urlParams.serviceName),
             servicePrice: 0,
             serviceDuration: 15, // 15 minute pentru consultația gratuită
           }));
-          
+
           // Treci direct la pasul 2 (alegere dată)
           setStep(2);
         } else {
           // Caută serviciul în lista de servicii disponibile
-          const selectedService = services.find(service => 
-            service.id.toString() === urlParams.serviceId.toString()
+          const selectedService = services.find(
+            (service) =>
+              service.id.toString() === urlParams.serviceId.toString()
           );
-          
+
           if (selectedService) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               serviceId: selectedService.id,
               serviceName: selectedService.name,
               servicePrice: parseFloat(selectedService.price),
               serviceDuration: parseInt(selectedService.duration || 60),
             }));
-            
+
             // Treci direct la pasul 2 (alegere dată)
             setStep(2);
           } else {
             // Dacă serviciul nu este găsit, folosește datele din URL
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               serviceId: urlParams.serviceId,
               serviceName: decodeURIComponent(urlParams.serviceName),
               servicePrice: parseFloat(urlParams.servicePrice || 0),
               serviceDuration: 60, // durată implicită
             }));
-            
+
             // Treci direct la pasul 2
             setStep(2);
           }
@@ -98,90 +99,80 @@ function BookingWizard() {
   const fetchServices = async () => {
     try {
       setLoading(true);
-    const response = await fetch("http://127.0.0.1/Breastfeeding-Help-Support/api/services.php");
+      setError("");
 
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Folosește aceleași URL-uri ca în SupportPackages
+      const possibleUrls = [
+        "https://marina-cociug.com/api/services.php",
+        "/api/services.php",
+        "./api/services.php",
+        "api/services.php",
+      ];
+
+      let lastError = null;
+      let success = false;
+
+      // Încearcă fiecare URL până găsește unul care funcționează
+      for (const url of possibleUrls) {
+        try {
+          console.log(`🔍 BookingWizard: Attempting to fetch from: ${url}`);
+
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            signal: AbortSignal.timeout(8000), // 8 secunde
+          });
+
+          console.log(
+            `📡 BookingWizard: Response status: ${response.status} for ${url}`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          console.log(
+            "✅ BookingWizard: Services response from",
+            url,
+            ":",
+            data
+          );
+
+          if (data.success && data.data && Array.isArray(data.data)) {
+            setServices(data.data);
+            success = true;
+            console.log(
+              `🎉 BookingWizard: Successfully loaded ${data.data.length} services from: ${url}`
+            );
+            break;
+          } else {
+            throw new Error(data.message || "Invalid response format");
+          }
+        } catch (fetchError) {
+          console.warn(
+            `❌ BookingWizard: Failed to fetch from ${url}:`,
+            fetchError.message
+          );
+          lastError = fetchError;
+          continue;
+        }
       }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setServices(data.data);
-        setError("");
-      } else {
-        setError(data.message || "Eroare la încărcarea serviciilor");
+
+      if (!success) {
+        throw new Error(
+          `Nu s-au putut încărca serviciile. Verifică că API-ul funcționează. Ultima eroare: ${
+            lastError?.message || "Unknown error"
+          }`
+        );
       }
     } catch (err) {
-      console.error("Eroare la preluarea serviciilor:", err);
-      setError("Nu s-au putut încărca serviciile disponibile");
-      
-      // În caz de eroare, verifică dacă avem parametri URL și îi folosește
-      const urlParams = getURLParams();
-      if (urlParams.serviceId && urlParams.serviceName) {
-        // Adaugă serviciile de fallback
-        const fallbackServices = [
-          {
-            id: 1,
-            name: "Consultație Inițială",
-            description: "Prima întâlnire pentru evaluarea nevoilor tale și stabilirea unui plan personalizat de alăptare.",
-            price: "150",
-            currency: "RON",
-            duration: 90,
-            popular: false,
-            features: [
-              "Evaluare completă",
-              "Plan personalizat",
-              "Ghid digital",
-              "Suport 24h"
-            ],
-            icon: "consultation",
-            gradient: "from-blue-500 to-indigo-600",
-            stats: "90 min"
-          },
-          {
-            id: 2,
-            name: "Pachet Complet de Îngrijire",
-            description: "Suport complet pentru întreaga ta călătorie de alăptare cu sesiuni multiple și monitorizare continuă.",
-            price: "450",
-            currency: "RON",
-            duration: 360,
-            popular: true,
-            features: [
-              "5 sesiuni incluse",
-              "Monitorizare continuă",
-              "Plan nutrițional",
-              "Comunitate privată",
-              "Urgențe 24/7"
-            ],
-            icon: "premium",
-            gradient: "from-purple-500 to-pink-600",
-            stats: "6 luni suport"
-          },
-          {
-            id: 3,
-            name: "Sesiune de Urgență",
-            description: "Suport rapid pentru situații urgente de alăptare disponibil oricând.",
-            price: "200",
-            currency: "RON",
-            duration: 60,
-            popular: false,
-            features: [
-              "Răspuns rapid",
-              "Consultație imediată",
-              "Plan de acțiune",
-              "Follow-up gratuit"
-            ],
-            icon: "emergency",
-            gradient: "from-orange-500 to-red-500",
-            stats: "< 2h răspuns"
-          },
-        ];
-        
-        setServices(fallbackServices);
-        setError(""); // Resetează eroarea dacă avem fallback
-      }
+      console.error("🚨 BookingWizard: Error fetching services:", err);
+      setError(err.message);
+      setServices([]); // Nu mai folosim fallback hardcodat
     } finally {
       setLoading(false);
     }
@@ -205,7 +196,7 @@ function BookingWizard() {
 
   // Actualizează datele serviciului selectat
   const updateSelectedService = (service) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       serviceId: service.id,
       serviceName: service.name,
@@ -216,10 +207,22 @@ function BookingWizard() {
 
   const getStepInfo = (stepNumber) => {
     const steps = [
-      { title: "Selectare serviciu", icon: "🎯", color: "from-blue-500 to-indigo-600" },
-      { title: "Alegere dată", icon: "📅", color: "from-green-500 to-emerald-600" },
-      { title: "Informații personale", icon: "👤", color: "from-purple-500 to-pink-600" },
-      { title: "Plată", icon: "💳", color: "from-orange-500 to-red-600" }
+      {
+        title: "Selectare serviciu",
+        icon: "🎯",
+        color: "from-blue-500 to-indigo-600",
+      },
+      {
+        title: "Alegere dată",
+        icon: "📅",
+        color: "from-green-500 to-emerald-600",
+      },
+      {
+        title: "Informații personale",
+        icon: "👤",
+        color: "from-purple-500 to-pink-600",
+      },
+      { title: "Plată", icon: "💳", color: "from-orange-500 to-red-600" },
     ];
     return steps[stepNumber - 1];
   };
@@ -244,17 +247,20 @@ function BookingWizard() {
             <div className="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full animate-bounce"></div>
             <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse"></div>
           </div>
-          
+
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Pregătim totul pentru tine...
           </h3>
           <p className="text-gray-600 mb-6">
             Se încarcă serviciile disponibile și sloturile de timp
           </p>
-          
+
           {/* Loading progress */}
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full animate-pulse" style={{width: '75%'}}></div>
+            <div
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full animate-pulse"
+              style={{ width: "75%" }}
+            ></div>
           </div>
           <p className="text-sm text-gray-500">Aproape gata...</p>
         </div>
@@ -274,33 +280,53 @@ function BookingWizard() {
         <div className="relative z-10 text-center bg-white/95 backdrop-blur-sm p-8 sm:p-12 rounded-3xl shadow-2xl border border-red-100 max-w-lg w-full">
           <div className="mb-8">
             <div className="w-20 h-20 bg-gradient-to-r from-red-400 to-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-10 h-10 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <div className="absolute top-4 right-4 w-16 h-16 bg-red-100 rounded-full opacity-50 animate-pulse"></div>
           </div>
-          
+
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Oops! Ceva nu a mers bine
+            Nu s-au putut încărca serviciile
           </h2>
-          <p className="text-gray-600 mb-8 leading-relaxed">
+          <p className="text-gray-600 mb-8 leading-relaxed break-words">
             {error}
           </p>
-          
+
           <div className="space-y-4">
             <button
               onClick={fetchServices}
               className="w-full bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
             >
               <span className="flex items-center justify-center">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
                 Încearcă din nou
               </span>
             </button>
-            
+
             <p className="text-sm text-gray-500">
               Dacă problema persistă, te rugăm să ne contactezi direct
             </p>
@@ -329,38 +355,40 @@ function BookingWizard() {
       <div className="lg:hidden bg-white/95 backdrop-blur-md border-b border-gray-200/50 px-4 py-4 sticky top-0 z-20 shadow-lg">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center">
-            <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${getStepInfo(step).color} flex items-center justify-center shadow-lg mr-3`}>
+            <div
+              className={`w-10 h-10 rounded-full bg-gradient-to-r ${
+                getStepInfo(step).color
+              } flex items-center justify-center shadow-lg mr-3`}
+            >
               <span className="text-lg">{getStepInfo(step).icon}</span>
             </div>
             <div>
               <h3 className="text-sm font-bold text-gray-800">
                 Pasul {step} din 4
               </h3>
-              <p className="text-xs text-gray-600">
-                {getStepInfo(step).title}
-              </p>
+              <p className="text-xs text-gray-600">{getStepInfo(step).title}</p>
             </div>
           </div>
-          
+
           {/* Step indicators */}
           <div className="flex space-x-2">
             {[1, 2, 3, 4].map((stepNum) => (
               <div
                 key={stepNum}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  stepNum <= step 
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600' 
-                    : 'bg-gray-300'
+                  stepNum <= step
+                    ? "bg-gradient-to-r from-blue-500 to-indigo-600"
+                    : "bg-gray-300"
                 }`}
               />
             ))}
           </div>
         </div>
-        
+
         {/* Enhanced Progress Bar */}
         <div className="relative">
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <div 
+            <div
               className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-500 ease-out relative"
               style={{ width: `${(step / 4) * 100}%` }}
             >
@@ -379,7 +407,11 @@ function BookingWizard() {
 
       {/* Enhanced Main Content with Transitions */}
       <div className="flex-1 min-h-0 relative z-10">
-        <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}>
+        <div
+          className={`transition-all duration-300 ${
+            isTransitioning ? "opacity-50 scale-95" : "opacity-100 scale-100"
+          }`}
+        >
           {step === 1 && (
             <StepServiceSelection
               services={services}
@@ -413,7 +445,7 @@ function BookingWizard() {
             />
           )}
         </div>
-        
+
         {/* Transition overlay */}
         {isTransitioning && (
           <div className="absolute inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-50">
@@ -427,8 +459,18 @@ function BookingWizard() {
       {/* Floating Help Button */}
       <div className="fixed bottom-6 right-6 z-30 lg:hidden">
         <button className="group w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center transform hover:scale-110">
-          <svg className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </button>
       </div>
