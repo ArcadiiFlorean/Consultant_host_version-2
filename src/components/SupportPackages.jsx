@@ -87,13 +87,14 @@ function SupportPackages() {
       setError(null);
 
       // Lista de URL-uri posibile pentru API (cu numele corect al folderului)
-      const possibleUrls = [
-        "/Breastfeeding-Help-Support/api/services.php",
-        "/api/services.php",
-        "http://localhost/Breastfeeding-Help-Support/api/services.php",
-        "./api/services.php"
-      ];
-
+    // Linia 47 - adaugă URL-ul de production la început:
+const possibleUrls = [
+  "https://marina-cociug.com/api/services.php",  // ← ADAUGĂ ASTA PRIMUL
+  "/Breastfeeding-Help-Support/api/services.php",
+  "/api/services.php",
+  "http://localhost/Breastfeeding-Help-Support/api/services.php",
+  "./api/services.php"
+];
       let lastError = null;
       let success = false;
 

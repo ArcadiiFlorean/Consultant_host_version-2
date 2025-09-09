@@ -25,13 +25,19 @@ function CheckoutForm({ amount = 2000, formData }) {
     try {
       const bookingData = {
         ...formData,
-        paymentMethod: "card" // Since we're using card payment
+        paymentMethod: "card", // Since we're using card payment
       };
+
+      // DEBUG LINES - ADĂUGATE PENTRU TESTING
+      console.log("=== DEBUG BOOKING ===");
+      console.log("formData received:", formData);
+      console.log("bookingData to send:", bookingData);
+      console.log("URL:", "https://marina-cociug.com/api/bookings.php");
 
       console.log("💾 Saving booking to database:", bookingData);
 
       const response = await fetch(
-        "http://localhost/Breastfeeding-Help-Support/api/bookings.php",
+        "https://marina-cociug.com/api/bookings.php",
         {
           method: "POST",
           headers: {
@@ -47,14 +53,13 @@ function CheckoutForm({ amount = 2000, formData }) {
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.message || "Eroare la salvarea rezervării");
       }
 
       console.log("✅ Booking saved successfully:", data);
       return data.data;
-      
     } catch (error) {
       console.error("❌ Error saving booking:", error);
       throw error;
@@ -83,7 +88,7 @@ function CheckoutForm({ amount = 2000, formData }) {
       // First, save the booking to the database
       console.log("💾 Saving booking to database...");
       const bookingResult = await saveBookingToDatabase();
-      
+
       const cardElement = elements.getElement(CardElement);
 
       // Create a PaymentMethod with Stripe
@@ -105,22 +110,19 @@ function CheckoutForm({ amount = 2000, formData }) {
       console.log("🚀 Processing payment...");
 
       // Send the paymentMethodId to your backend
-      const res = await fetch(
-        "http://localhost/Breastfeeding-Help-Support/api/charge.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            paymentMethodId: paymentMethod.id,
-            amount,
-            currency: "gbp", // ✅ Set currency to GBP for pounds
-            bookingId: bookingResult.bookingId, // Include booking ID
-          }),
-        }
-      );
+      const res = await fetch("https://marina-cociug.com/api/charge.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          paymentMethodId: paymentMethod.id,
+          amount,
+          currency: "gbp", // ✅ Set currency to GBP for pounds
+          bookingId: bookingResult.bookingId, // Include booking ID
+        }),
+      });
 
       console.log("📡 Payment response status:", res.status);
 
@@ -137,27 +139,25 @@ function CheckoutForm({ amount = 2000, formData }) {
 
       if (paymentData.success) {
         setMessage("✅ Rezervarea și plata au fost procesate cu succes!");
-        
+
         // Clear form fields
         setCardName("");
         setZip("");
         cardElement.clear();
-        
+
         // Optionally redirect to a success page after a delay
         setTimeout(() => {
           window.location.href = "/booking-success";
         }, 2000);
-        
       } else {
         setMessage(
           "❌ Eroare la plată: " +
             (paymentData.message || "A apărut o eroare necunoscută.")
         );
       }
-      
     } catch (error) {
       console.error("🚨 Error during booking/payment process:", error);
-      
+
       if (error.message.includes("fetch")) {
         setMessage(
           "❌ Eroare de conectare: Nu se poate conecta la server. Verifică dacă serverul rulează."
@@ -176,7 +176,9 @@ function CheckoutForm({ amount = 2000, formData }) {
       <div className="w-full max-w-md mx-auto space-y-4 p-4 sm:p-6 bg-white shadow-md rounded-lg">
         <div className="flex items-center justify-center py-6 sm:py-8">
           <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-purple-600"></div>
-          <span className="ml-3 text-sm sm:text-base text-gray-600">Se încarcă sistemul de plată...</span>
+          <span className="ml-3 text-sm sm:text-base text-gray-600">
+            Se încarcă sistemul de plată...
+          </span>
         </div>
       </div>
     );
@@ -239,16 +241,16 @@ function CheckoutForm({ amount = 2000, formData }) {
                     fontSize: window.innerWidth < 640 ? "16px" : "18px",
                     color: "#374151",
                     fontFamily: "'Inter', 'Segoe UI', sans-serif",
-                    "::placeholder": { 
-                      color: "#9CA3AF" 
+                    "::placeholder": {
+                      color: "#9CA3AF",
                     },
                   },
-                  invalid: { 
-                    color: "#EF4444" 
+                  invalid: {
+                    color: "#EF4444",
                   },
                   complete: {
-                    color: "#059669"
-                  }
+                    color: "#059669",
+                  },
                 },
               }}
             />
@@ -268,10 +270,12 @@ function CheckoutForm({ amount = 2000, formData }) {
           {isLoading ? (
             <span className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2 sm:mr-3"></div>
-              <span className="text-sm sm:text-base">Se procesează plata...</span>
+              <span className="text-sm sm:text-base">
+                Se procesează plata...
+              </span>
             </span>
           ) : (
-            `Plătește £${(amount/100).toFixed(2)}`
+            `Plătește £${(amount / 100).toFixed(2)}`
           )}
         </button>
 

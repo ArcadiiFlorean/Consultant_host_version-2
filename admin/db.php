@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$dbname = 'breastfeeding_consulting';
-$username = 'root';
-$password = ''; // sau parola dacă ai
+$dbname = 'dbbgd05fqwnbyk'; // Baza de date principală
+$username = 'ukwfjvfi59ny9';
+$password = '2n1iigooazzg';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
@@ -10,3 +10,4 @@ try {
 } catch (PDOException $e) {
     die("Conexiunea a eșuat: " . $e->getMessage());
 }
+?>

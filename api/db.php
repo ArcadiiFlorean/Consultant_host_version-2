@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$dbname = 'breastfeeding_consulting'; // Baza de date principală
-$username = 'root';
-$password = '';
+$dbname = 'dbbgd05fqwnbyk'; // Baza de date principală
+$username = 'ukwfjvfi59ny9';
+$password = '2n1iigooazzg';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

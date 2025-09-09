@@ -102,12 +102,12 @@ function BookingWizard() {
       setError("");
 
       // Folosește aceleași URL-uri ca în SupportPackages
-      const possibleUrls = [
-        "https://marina-cociug.com/api/services.php",
-        "/api/services.php",
-        "./api/services.php",
-        "api/services.php",
-      ];
+const possibleUrls = [
+  "https://marina-cociug.com/api/services.php",  // ← ADAUGĂ ASTA PRIMUL
+  "/api/services.php",
+  "./api/services.php", 
+  "api/services.php",
+];
 
       let lastError = null;
       let success = false;
